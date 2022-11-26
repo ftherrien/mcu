@@ -75,7 +75,8 @@ def read_WAVEDER(file='WAVEDER'):
     nb_tot, nbands_cder, nkpts, ispin = data.read_record(dtype= np.int32)
     nodesn_i_dielectric_function = data.read_record(dtype= np.float)
     wplasmon = data.read_record(dtype= np.float).reshape(3,3)
-    cder = data.read_record(dtype= np.complex64).reshape(ispin,nkpts,nbands_cder,nb_tot,3)
+    cder = data.read_record(dtype= np.complex64).reshape(nb_tot, nbands_cder, nkpts, ispin, 3, order="F")
+    cder = np.moveaxis(cder, [2,3],[0,1])
     
     return cder, nodesn_i_dielectric_function, wplasmon
     
@@ -90,7 +91,7 @@ def read_WAVEDERF(file='WAVEDERF'):
     ispin, nkpts, nbands_cder = np.int32(data[0].split())
     
     # the last index of cder for cdum_x,cdum_y,cdum_z
-    cder = np.empty([ispin,nkpts,nbands_cder,nbands_cder,3]) 
+    cder = np.empty([ispin,nkpts,nbands_cder,nbands_cder,3],dtype=np.complex64) 
     
     line = 1
     for spin in range(ispin):
@@ -98,7 +99,7 @@ def read_WAVEDERF(file='WAVEDERF'):
             for band1 in range(nbands_cder):      
                 for band2 in range(nbands_cder):      
                     x_real, x_imag, y_real, y_imag, z_real, z_imag = np.float64(data[line].split())[-6:]
-                    cdum[spin,kpt,band1,band2] = np.asarray([np.complex(x_real,x_imag), np.complex(y_real,y_imag), np.complex(z_real,z_imag)])     
+                    cder[spin,kpt,band1,band2] = np.asarray([np.complex(x_real,x_imag), np.complex(y_real,y_imag), np.complex(z_real,z_imag)])     
                     line += 1
                 
     return cder
